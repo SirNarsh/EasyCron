@@ -21,19 +21,22 @@ $maxEndTime=time()+1800;  // Process will expires after 30 mintues (1800 seconds
 $cycleSleep=5; // Sleep time before redoing a tasks round
 echo "Start \n";
 
+$lockFile=__FILE__.".pid";
 
 // Check if script is still running to prevent running two scripts 
-if(file_exists(__DIR__."/task.pid")){
-    echo __DIR__."/task.pid Exists \n";
-    $last_pid= file_get_contents(__DIR__."/task.pid");
-    echo "Last PID= ".$last_pid."\n";
-    echo "Which exists = ".(file_exists("/proc/".$last_pid)?"true":"false")."\n";
-    if(file_exists("/proc/".$last_pid)){
-        die("Already running at PID:".$last_pid."\n");
+if(file_exists($lockFile)){
+    // If file exists check if PID is still running
+    echo $lockFile." Exists \n";
+    $last_pid= file_get_contents($lockFile);
+    echo "Last PID= ".$lastPID."\n";
+    echo "Which exists = ".(file_exists("/proc/".$lastPID)?"true":"false")."\n";
+    if(file_exists("/proc/".$lastPID)){
+        // Last process is still running 
+        die("Already running at PID:".$lastPID."\n");
     }
 }
-
-file_put_contents(__DIR__."/task.pid", getmypid());
+// Save current PID to lockfile
+file_put_contents($lockFile, getmypid());
 
 // Loop until this cron job is set to expire
 while($maxEndTime<time()){
